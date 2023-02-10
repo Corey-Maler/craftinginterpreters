@@ -1,0 +1,13 @@
+{
+  "name": "nanocompiler",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Konstantin Zarvanskiy <konstantin@platform24.se>",
+  "license": "MIT",
+  "dependencies": {
+    "ts-node": "^10.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.13.0"
+  }
+}
