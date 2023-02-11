@@ -1,14 +1,8 @@
-console.log('hello world')
-
 import { Lox } from './src/main';
 import fs from 'fs';
 import path from 'node:path';
 
 // print process.argv
-process.argv.forEach(function (val, index, array) {
-  console.log(index + ': ' + val);
-});
-
 const fileName = process.argv[2];
 
 if (process.argv[3]) {
