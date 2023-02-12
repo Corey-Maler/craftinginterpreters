@@ -26,6 +26,10 @@ export class AstPrinter implements Expr.Visitor<string> {
       return this.parenthesize(expr.operator.lexeme, expr.right);
   }
 
+  visitVariableExpr(expr: Expr.Variable): string {
+      return 'variable: ' + expr.name.lexeme;
+  }
+
   private parenthesize(name: string, ...exprs: Expr.Expr[]) {
     let str = `(${name}`;
     for (const expr of exprs) {

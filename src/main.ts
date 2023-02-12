@@ -15,7 +15,7 @@ export class Lox {
     this.runFile(fileName);
 
     if (Lox.hadError) {
-      process.exit(65)
+      process.exit(65);
     }
 
     if (Lox.hadRuntimeError) {
@@ -29,22 +29,21 @@ export class Lox {
   }
 
   run(content: string) {
-    console.log('input: ', content);
+    console.log("input: ", content);
     const scanner = new Scanner(content);
     const tokens = scanner.scanTokens();
 
     const parser = new Parser(tokens);
-    const expression = parser.parse();
+    const statements = parser.parse();
 
     if (Lox.hadError) {
       return;
     }
 
-    const astPrinter = new AstPrinter();
-    console.log(astPrinter.print(expression!))
+    // const astPrinter = new AstPrinter();
+    // console.log(astPrinter.print(expression!))
 
-    Lox.intepreter.interpret(expression!);
-
+    Lox.intepreter.interpret(statements.filter((el) => !!el) as any);
   }
 
   static hadError = false;
@@ -65,7 +64,7 @@ export class Lox {
   }
 
   static runtimeError(error: RuntimeError) {
-    console.log(error.message + '\n[line '+ error.token.line + ']');
+    console.log(error.message + "\n[line " + error.token.line + "]");
     Lox.hadRuntimeError = true;
   }
 

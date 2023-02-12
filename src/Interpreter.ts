@@ -1,15 +1,20 @@
 import { throws } from "assert";
 import * as Expr from "../ast/Expr";
+import * as Stmt from "../ast/Stmt";
+import { Environment } from "./Environment";
 import { RuntimeError } from "./Errors";
 import { Lox } from "./main";
 import { Token } from "./Token";
 import { TokenType } from "./TokenType";
 
-export class Interpreter implements Expr.Visitor<any> {
-  public interpret(expression: Expr.Expr) {
+export class Interpreter implements Expr.Visitor<any>, Stmt.Visitor<void> {
+  private environment = new Environment();
+
+  public interpret(statements: Stmt.Stmt[]) {
     try {
-      const value = this.evaluate(expression);
-      console.log(">> result", value);
+      for (const stmt of statements) {
+        this.execute(stmt);
+      }
     } catch (e: unknown) {
       if (e instanceof RuntimeError) {
         Lox.runtimeError(e);
@@ -18,6 +23,44 @@ export class Interpreter implements Expr.Visitor<any> {
 
       throw e;
     }
+  }
+
+  visitBlockStmt(stmt: Stmt.Block): void {
+    console.log('stmt', typeof stmt, stmt);
+      this.executeBlock(stmt.statements, new Environment(this.environment));
+      return;
+  }
+
+  visitAssignExpr(expr: Expr.Assign) {
+      const value = this.evaluate(expr.value) as any;
+      this.environment.assign(expr.name, value);
+      return value;
+  }
+
+  visitVarStmt(stmt: Stmt.Var): void {
+    let value = null;
+    if (stmt.initializer !== null) {
+      value = this.evaluate(stmt.initializer);
+    }
+
+    this.environment.define(stmt.name.lexeme, value);
+
+    return;
+  }
+
+  visitVariableExpr(expr: Expr.Variable) {
+      return this.environment.get(expr.name);
+  }
+
+  visitExpressionStmt(stmt: Stmt.Expression): void {
+    this.evaluate(stmt.expression);
+    return;
+  }
+
+  visitPrintStmt(stmt: Stmt.Print): void {
+    const value = this.evaluate(stmt.expression);
+    console.log(value);
+    return;
   }
 
   visitLiteralExpr(expr: Expr.Literal) {
@@ -109,6 +152,23 @@ export class Interpreter implements Expr.Visitor<any> {
 
     // unreachable
     return null;
+  };
+
+  private execute(stmt: Stmt.Stmt) {
+    stmt.accept(this);
+  }
+
+  private executeBlock(statements: Stmt.Stmt[], environment: Environment) {
+    const previous = this.environment;
+    try {
+      this.environment = environment;
+
+      for (const statement of statements) {
+        this.execute(statement);
+      }
+    } finally {
+      this.environment = previous;
+    }
   }
 
   private isEqual(left: any, right: any) {

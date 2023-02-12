@@ -1,5 +1,6 @@
 import { throws } from 'assert';
 import * as Expr from '../ast/Expr';
+import * as Stmt from '../ast/Stmt';
 import { ParseError } from './Errors';
 import { Lox } from './main';
 import { Token } from './Token';
@@ -11,6 +12,15 @@ export class Parser {
   constructor(private readonly tokens: Token[]) {}
 
   public parse() {
+    const statements: (Stmt.Stmt | undefined)[] = [];
+
+    while (!this.isAtEnd()) {
+      //statements.push(this.statement());
+      statements.push(this.declaration());
+    }
+
+    return statements;
+    /*
     try {
       return this.expression();
     } catch (e: unknown) {
@@ -18,11 +28,92 @@ export class Parser {
         return null;
       }
       throw e;
+    }*/
+  }
+
+  private declaration() {
+    try {
+      if (this.match(TokenType.VAR)) {
+        return this.varDeclaration();
+      }
+
+      return this.statement();
+    } catch (e: unknown) {
+      if (e instanceof ParseError) {
+        this.synchronize();
+        return;
+      }
     }
   }
 
+  private varDeclaration(): Stmt.Stmt {
+      const name = this.consume(TokenType.IDENTIFIER, 'Expect variable name');
+
+      let initializer = null;
+      if (this.match(TokenType.EQUAL)) {
+        initializer = this.expression();
+      }
+
+      this.consume(TokenType.SEMICOLON, 'Expect ; after declaration');
+      return new Stmt.Var(name, initializer);
+  }
+  
+  private statement() {
+    if (this.match(TokenType.PRINT)) {
+      return this.printStatement();
+    }
+
+    if (this.match(TokenType.LEFT_BRACE)) {
+      return new Stmt.Block(this.block());
+    }
+
+    return this.expressionStatement();
+  }
+
+  private block() {
+    const statements = [] as Stmt.Stmt[];
+
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      statements.push(this.declaration()!);
+    }
+
+    this.consume(TokenType.RIGHT_BRACE, "Expect } after block");
+    return statements;
+  }
+
+  private printStatement(): Stmt.Stmt {
+    const value = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ; after value");
+    return new Stmt.Print(value);
+  }
+
+  private expressionStatement(): Stmt.Stmt {
+    const expr = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expected ; after statement");
+    return new Stmt.Expression(expr);
+  }
+
   private expression() {
-    return this.equality();
+    return this.assignment();
+    // return this.equality();
+  }
+
+  private assignment(): Expr.Expr {
+    let expr = this.equality();
+
+    if (this.match(TokenType.EQUAL)) {
+      const equals = this.previous();
+      const value = this.assignment();
+
+      if (expr instanceof Expr.Variable) {
+        const name = expr.name;
+        return new Expr.Assign(name, value);
+      }
+
+      this.error(equals, "Invalid assignment target");
+    }
+
+    return expr;
   }
 
   private equality() {
@@ -96,6 +187,10 @@ export class Parser {
 
     if (this.match(TokenType.NUMBER, TokenType.STRING)) {
       return new Expr.Literal(this.previous().literal);
+    }
+
+    if (this.match(TokenType.IDENTIFIER)) {
+      return new Expr.Variable(this.previous());
     }
 
     if (this.match(TokenType.LEFT_PAREN)) {
