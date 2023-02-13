@@ -7,3 +7,9 @@ export class RuntimeError extends Error {
     super(message);
   }
 }
+
+export class Return extends Error {
+  constructor(public readonly value: any) {
+    super();
+  }
+}

@@ -1,0 +1,25 @@
+class Foo {
+  init() {
+    this.hello = 3;
+  }
+
+  say() {
+    print this.hello;
+  }
+}
+
+class Bar < Foo {
+  update(amount) {
+    this.hello = amount;
+  }
+
+  loud() {
+    super.say();
+  }
+}
+
+var bar = Bar();
+
+bar.update(6);
+
+bar.loud();

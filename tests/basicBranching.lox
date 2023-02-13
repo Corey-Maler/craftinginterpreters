@@ -1,0 +1,16 @@
+print "hi" or 2;
+print nil or "yes";
+
+var a = true;
+var b = 4;
+var c = 6;
+
+if (a) {
+  print "a is true";
+}
+
+if (b > c) {
+  print "b > c";
+} else {
+  print "b < c";
+}

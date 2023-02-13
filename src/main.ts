@@ -3,6 +3,7 @@ import { AstPrinter } from "./AstPrinter";
 import { RuntimeError } from "./Errors";
 import { Interpreter } from "./Interpreter";
 import { Parser } from "./Parser";
+import { Resolver } from "./Resolver";
 import { Scanner } from "./Scanner";
 import { Token } from "./Token";
 import { TokenType } from "./TokenType";
@@ -34,16 +35,20 @@ export class Lox {
     const tokens = scanner.scanTokens();
 
     const parser = new Parser(tokens);
-    const statements = parser.parse();
+    const statements = parser.parse().filter(el => !!el) as any;
 
     if (Lox.hadError) {
       return;
     }
 
-    // const astPrinter = new AstPrinter();
-    // console.log(astPrinter.print(expression!))
+    const resolver = new Resolver(Lox.intepreter);
+    resolver.resolve(statements);
 
-    Lox.intepreter.interpret(statements.filter((el) => !!el) as any);
+    if (Lox.hadError) {
+      return;
+    }
+
+    Lox.intepreter.interpret(statements);
   }
 
   static hadError = false;

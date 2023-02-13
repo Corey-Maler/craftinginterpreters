@@ -25,27 +25,49 @@ class GenerateAst {
     this.defineAst(outputDir, "Expr", [
       "Assign   : Token name, Expr value",
       "Binary   : Expr left, Token operator, Expr right",
+      "Call     : Expr callee, Token paren, Array<Expr> args",
+      "Get      : Expr obj, Token name",
       "Grouping : Expr expression",
       "Literal  : any value",
+      "Logical  : Expr left, Token operator, Expr right",
+      "Set      : Expr obj, Token name, Expr value",
+      "Super    : Token keyword, Token method",
+      "This     : Token keyword",
       "Unary    : Token operator, Expr right",
-      "Variable : Token name"
+      "Variable : Token name",
     ]);
 
-    this.defineAst(outputDir, "Stmt", [
-      "Block      : Stmt[] statements",
-      "Expression : Expr expression",
-      "Print      : Expr expression",
-      "Var        : Token name, Nullable<Expr> initializer",
-    ], `import { Expr } from './Expr';
+    this.defineAst(
+      outputDir,
+      "Stmt",
+      [
+        "Block      : Stmt[] statements",
+        "Class      : Token name, Nullable<Variable> superklass, Array<Fnction> methods",
+        "Expression : Expr expression",
+        // js does not like word Function
+        "Fnction   : Token name, Array<Token> params, Array<Stmt> body",
+        "If         : Expr condition, Stmt thenBranch, Nullable<Stmt> elseBranch",
+        "Print      : Expr expression",
+        "Return     : Token keyword, Nullable<Expr> value",
+        "Var        : Token name, Nullable<Expr> initializer",
+        "While      : Expr condition, Stmt body",
+      ],
+      `import { Expr, Variable } from './Expr';
 
-import { Nullable } from '../utils'; `);
+import { Nullable } from '../utils'; `
+    );
   }
 
   private defineImports(writter: Writter) {
     writter.println("import { Token } from '../src/Token';");
   }
 
-  private defineAst(outputDir: string, baseName: string, types: string[], header = '') {
+  private defineAst(
+    outputDir: string,
+    baseName: string,
+    types: string[],
+    header = ""
+  ) {
     const filePath = outputDir + "/" + baseName + ".ts";
     const writter = new Writter(filePath);
 
@@ -96,7 +118,7 @@ export abstract class ${baseName} {
   accept<R>(visitor: Visitor<R>): R {
     return visitor.visit${className}${baseName}(this);
   }
-`)
+`);
 
     writter.println("}");
   }
