@@ -1,6 +1,6 @@
 # LOX compilator and interpreter
 
-Code which follows book (Crafting interpreters)[https://craftinginterpreters.com/] in `typescript`.
+Code which follows book [Crafting interpreters](https://craftinginterpreters.com/) in `typescript`.
 
 ## Motivation
 
